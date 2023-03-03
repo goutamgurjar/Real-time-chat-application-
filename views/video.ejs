@@ -1,0 +1,270 @@
+<%-include('partials/header')-%>
+    
+    <div style="display: flex;
+    position: relative;
+    top: -46px;">
+        <div id="video-container">
+
+            <div id="live">
+                <!-- <button id="end-call" onclick="endCall()">End Call</button> -->
+            </div>
+
+            <div id="video1-container">
+                <video style="margin: 0px 1.4px; height: 43.3vh;" id="remote-video">video 1</video>
+            </div>
+
+            <div id="video2-container">
+                <video style="margin: 1.5px 1.4px; height: 43.3vh;" id="local-video" muted="true">video 2</video>
+            </div>
+        </div>
+
+        <div id="v-text-container">
+            <div id="menu" style="position: relative;
+            width: 55vw;
+            top: 66vh;">
+                <div style="display: flex;">
+                    <p>share this id with stranger for video connectivity =></p>
+                    <h1 style="width: 8px;"></h1>
+                    <p id="uuid">this</p>
+                </div>
+                <div style="width: fit-content;
+                position: absolute;
+                left: 7vw;">
+                    <input style="    text-align: center;
+                height: 50px;
+          
+                border: none;
+               color: white;
+                font-size: 20px;
+                font-weight: 200;
+                width: 391px;
+                border-radius: 5px;" type="text" placeholder=" paste the stranger peer id for video conectivity" />
+                    <button class="btn btn-outline-light btn-lg size-btn" style="width : auto ; position: relative; bottom: 5px;" onclick="callUser()">Connect</button>
+                </div>
+
+
+            </div>
+            <p id="waiting-screen" style="position: relative;
+            color: white;
+    left: 28rem;
+    width: 19vw; display: inline;">waiting for stranger......</p>
+            <button id="refresh-btn">Refresh</button>
+
+            <p id="paired-screen" style="position: relative;
+            color: white;
+    left: 30rem;
+    width: 19vw; display: none;">you are now conected to stranger</p>
+
+            <p id="disconnected-screen" style="    position: relative;
+            left: 28rem;
+            width: fit-content;
+            display: none;
+            color: red;">you are now diconnected from the stranger press refress button</p>
+            <p id="info-typing" style="display: none; position: fixed; left: 45%;">stranger is typing.....</p>
+
+
+        </div>
+    </div>
+    <span style="       display: flex;
+    position: relative;
+    top: -95px;
+    left: 425px;
+    width: 68.3rem;
+    background-color: transparent;">
+        <form action="/vstop" method="post">
+            <button class="btn btn-outline-light btn-lg size-btn" style="margin: 0px 3px;">Stop</button>
+        </form>
+        <form id="message-form">
+            <input id="vtext-input" type="text" name='vSendText' placeholder="send Message">
+            <button type="submit" class="btn btn-outline-light btn-lg" value="send"
+                style="position: relative; top: -2.7px; width: 84px;">Send</button>
+        </form>
+    </span>
+    <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io('/video');
+        socket.on('partner connected', (partnerId) => {
+
+            // document.getElementById('partner-id').textContent = partnerId;
+            document.getElementById('waiting-screen').style.display = 'none';
+            document.getElementById('paired-screen').style.display = 'block';
+        });
+
+
+        const messageForm = document.getElementById('message-form');
+        messageForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const messageInput = document.getElementById('vtext-input');
+            const message = messageInput.value.trim();
+            if (message !== '') {
+
+                socket.emit('send message', message);
+                messageInput.value = '';
+            }
+
+        });
+
+
+        socket.on('partner connected', (partnerId) => {
+
+            const messageList = document.getElementById('v-text-container');
+            const messageInput = document.querySelector('#vtext-input');
+
+            messageInput.addEventListener('keydown', () => {
+                socket.emit('typing');
+            });
+            socket.on('user typing', () => {
+                typingMsg = document.getElementById("info-typing").style.display = "block"
+                console.log(`stranger is typing...`);
+            });
+
+            messageInput.addEventListener('keyup', () => {
+                socket.emit('stop typing');
+            });
+
+            socket.on('user stopped typing', () => {
+                typingInfo = document.getElementById('info-typing').style.display = "none"
+            });
+
+
+            socket.on('receive message', (data) => {
+                let ide = data.sender
+                const messageList = document.getElementById('v-text-container');
+
+                if (ide !== partnerId) {
+                    const messageItem = document.createElement('h4');
+                    if (data.message.length >= 73) {
+                        messageItem.setAttribute('id', 'text-wrap3');
+                    } else {
+                        messageItem.setAttribute('id', 'text-wrap4');
+                    }
+                    messageItem.textContent = ` you : ${data.message}`
+                    messageList.appendChild(messageItem);
+                    messageList.scrollTop = messageList.scrollHeight;
+                } else {
+                    if (!messageList) {
+                        messageList = document.createElement('div');
+                        messageList.setAttribute('id', 'v-text-container');
+                        document.body.appendChild(messageList);
+                    }
+                    const messageItem = document.createElement('h4');
+                    if (data.message.length >= 73) {
+                        messageItem.setAttribute('id', 'text-wrap1');
+                    } else {
+                        messageItem.setAttribute('id', 'text-wrap');
+                    }
+                    messageItem.textContent = ` stranger : ${data.message}`
+                    messageList.appendChild(messageItem);
+                    messageList.scrollTop = messageList.scrollHeight;
+                }
+
+            });
+
+        })
+
+        document.getElementById("refresh-btn").addEventListener("click", function () {
+            location.reload();
+        });
+
+        const refreshButton = document.getElementById('refresh-btn');
+        refreshButton.addEventListener('click', () => {
+            socket.emit('refresh', (socket.id));
+            console.log("clicked")
+        });
+
+
+
+
+        socket.on("disconnect message", (data) => {
+            document.getElementById('waiting-screen').style.display = 'none';
+            document.getElementById('paired-screen').style.display = 'none';
+            document.getElementById('disconnected-screen').style.display = "block";
+
+        })
+
+
+        // Peerjs connection
+
+        const peer = new Peer();
+        var currentCall;
+        peer.on("open", function (id) {
+            document.getElementById("uuid").textContent = id;
+            console.log(id)
+            socket.emit('peerId', id)
+        });
+        async function callUser() {
+            // get the id entered by the user
+            const peerId = document.querySelector("input").value;
+            // grab the camera and mic
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: true,
+                audio: true,
+            });
+            // switch to the video call and play the camera preview
+            document.getElementById("menu").style.display = "none";
+            document.getElementById("live").style.display = "block";
+            document.getElementById("local-video").srcObject = stream;
+            document.getElementById("local-video").play();
+            // make the call
+            const call = peer.call(peerId, stream);
+            call.on("stream", (stream) => {
+                document.getElementById("remote-video").srcObject = stream;
+                document.getElementById("remote-video").play();
+            });
+            call.on("data", (stream) => {
+                document.querySelector("#remote-video").srcObject = stream;
+            });
+            call.on("error", (err) => {
+                console.log(err);
+            });
+            call.on('close', () => {
+                endCall()
+            })
+            // save the close function
+            currentCall = call;
+        }
+
+        peer.on("call", (call) => {
+            // if (confirm(`Accept call from ${call.peer}?`)) {
+            // grab the camera and mic
+            navigator.mediaDevices
+                .getUserMedia({ video: true, audio: true })
+                .then((stream) => {
+                    // play the local preview
+                    document.querySelector("#local-video").srcObject = stream;
+                    document.querySelector("#local-video").play();
+                    // answer the call
+                    call.answer(stream);
+                    // save the close function
+                    currentCall = call;
+                    // change to the video view
+                    document.querySelector("#menu").style.display = "none";
+                    document.querySelector("#live").style.display = "block";
+                    call.on("stream", (remoteStream) => {
+                        // when we receive the remote stream, play it
+                        document.getElementById("remote-video").srcObject = remoteStream;
+                        document.getElementById("remote-video").play();
+                    });
+                })
+                .catch((err) => {
+                    console.log("Failed to get local stream:", err);
+                });
+            // } else {
+            //     // user rejected the call, close it
+            //     call.close();
+            // }
+        });
+        function endCall() {
+            // Go back to the menu
+            document.querySelector("#menu").style.display = "block";
+            document.querySelector("#live").style.display = "none";
+            // If there is no current call, return
+            if (!currentCall) return;
+            // Close the call, and reset the function
+            try {
+                currentCall.close();
+            } catch { }
+            currentCall = undefined;
+        }
+    </script>

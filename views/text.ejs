@@ -1,0 +1,35 @@
+<%-include('partials/header')-%>
+
+  <div id="t-container">
+
+    <p id="waiting-screen" style="position: relative;
+    left: 39rem;
+    width: 19vw; display: inline;">waiting for stranger......</p>
+    <button id="refresh-btn">Refresh</button>
+
+    <p id="paired-screen" style="position: relative;
+    left: 39rem;
+    width: 19vw; display: none;">you are now conected to stranger</p>
+
+    <p id="disconnected-screen" style="position: relative;
+    left: 39rem;
+    width: fit-content; display: none;">you are now diconnected from the stranger press refress button</p>
+    <p id="info-typing" style="display: none; position: fixed; left: 45%;">stranger is typing.....</p>
+  </div>
+  <div style="display: flex;
+width: 96.5vw;
+position: relative;
+left: 28px;">
+    <form action="/stop" method="post">
+      <button id="stopButton" class="btn btn-outline-light btn-lg size-btn" name="stop">Stop</button>
+    </form>
+    <form id="message-form">
+      <input id="text-input" type="text" name='sendText' placeholder="send Message">
+      <button type="submit" class="btn btn-outline-light btn-lg size-btn" value="Send"
+        style="margin-top: -4px;">Send</button>
+    </form>
+  </div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/views/text.js"></script>
+
+  

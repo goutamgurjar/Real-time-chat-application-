@@ -1,0 +1,55 @@
+<%-include('partials/header')-%>
+    <div class="descMain">
+        <p class="content">MockInterview™ is the best way to prepare for an interview. While preparing for real-life
+            interviews, you
+            practice how to answer difficult questions and how to be professional at the same time. You can easily find
+            random strangers with whom you can practice your interview.</p>
+    </div>
+    <div class="InfoText">
+        <div>
+            <p>On which specific area or topic you want to intract with the stranger</p>
+
+            <div class="box">
+
+                <% newListItems.forEach(function(item){ %>
+                    <form action="/delete" method="post">
+
+                        <div class="item"> <input type="checkbox" name="removeItems"
+                                value="<%=newListItems.indexOf(item)%>" onchange="this.form.submit()">
+                            <p>
+                                <%= item %>
+                            </p>
+
+                        </div>
+                        <input type="hidden" name="listName" value=""></input>
+                    </form>
+                    <% }) %>
+
+                        <form class="item" action="/" method="post">
+                            <input style="color: white;" type="text" name="newItem" placeholder="New Item"
+                                autocomplete="off">
+                            <button type="submit" name="list" value="" style="    width: 5vw;
+                    height: 50px;
+                    border-radius: 25px;
+                    background: #2c2c2cf5;
+                    color: white;
+                    border: none;">+</button>
+                        </form>
+            </div>
+        </div>
+    </div>
+    <h2 class='normtext'> Start Chatting</h2>
+    <div class="startBtn">
+
+        <div>
+            <form action="/text" method="post">
+                <button type="submit" class="btn btn-outline-light btn-lg size-btn" name="text">Text</button>
+            </form>
+        </div>
+        <h6 style="margin: 14px;">or</h6>
+        <form action="/video" method="post">
+            <button type="submit" class="btn btn-outline-light btn-lg" name="video">Video</button>
+        </form>
+    </div>
+    <script src="/views/script.js"></script>
+    <%-include('partials/footer')-%>
